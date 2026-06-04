@@ -1,4 +1,4 @@
 #include <iostream>
 using namespace std;
 
-cout<<"Emils Emils katru dienu iet tinder dates - CHUUUD ";
+cout<<"Ka sauc 50 tumsadainus cilvekus kas izlec no lidmasinas, gaisa piesarnojums";
