@@ -1,0 +1,106 @@
+CREATE DATABASE IF NOT EXISTS arhilejas_papedis;
+USE arhilejas_papedis;
+
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL, -- piem., 'klients', 'meistars', 'administrators'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE Filiales (
+    Filiales_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Nosaukums VARCHAR(100) NOT NULL,
+    Adrese VARCHAR(255) NOT NULL,
+    Pilseta VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE Meistari (
+    Meistari_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Filiales_ID INT NOT NULL,
+    user_id INT NOT NULL UNIQUE, -- Ārējā atslēga uz users tabulu (1:1 vai N:1)
+    Vards VARCHAR(100) NOT NULL,
+    Uzvards VARCHAR(100) NOT NULL,
+    TelNr VARCHAR(20),
+    FOREIGN KEY (Filiales_ID) REFERENCES Filiales(Filiales_ID) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Klienti (
+    Klienti_ID INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE, -- Ārējā atslēga uz users tabulu
+    Vards VARCHAR(100) NOT NULL,
+    Uzvards VARCHAR(100) NOT NULL,
+    TelNr VARCHAR(20),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Apavi (
+    Apavi_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Klienta_ID INT NOT NULL,
+    Zimols VARCHAR(100),
+    Tips VARCHAR(100) NOT NULL,
+    ApavuMaterials VARCHAR(100),
+    FOREIGN KEY (Klienta_ID) REFERENCES Klienti(Klienti_ID) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Pasutijumi (
+    Pasutijumi_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Apavu_ID INT NOT NULL,
+    Meistara_ID INT NULL, -- Var būt NULL, ja meistars vēl nav piesaistīts
+    Pienemsanas_Datums DATE NOT NULL,
+    Termins DATE,
+    RemontaVeids VARCHAR(255),
+    Statuss VARCHAR(50) NOT NULL,
+    Cena DECIMAL(10, 2) DEFAULT 0.00,
+    Garantijas_Termins DATE,
+    FOREIGN KEY (Apavu_ID) REFERENCES Apavi(Apavi_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Meistara_ID) REFERENCES Meistari(Meistari_ID) ON DELETE SET NULL
+);
+
+
+CREATE TABLE Materiali (
+    Materiali_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Nosaukums VARCHAR(100) NOT NULL,
+    Mervieniba VARCHAR(50) NOT NULL,
+    Cena DECIMAL(10, 2) NOT NULL
+);
+
+
+CREATE TABLE FilialuKrajumi (
+    Krajuma_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Filiales_ID INT NOT NULL,
+    Materiali_ID INT NOT NULL,
+    Apjoms INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (Filiales_ID) REFERENCES Filiales(Filiales_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Materiali_ID) REFERENCES Materiali(Materiali_ID) ON DELETE CASCADE,
+    UNIQUE KEY uq_filiale_material (Filiales_ID, Materiali_ID)
+);
+
+
+CREATE TABLE PasutijumaMateriali (
+    PasutijumaMateriali_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Pasutijuma_ID INT NOT NULL,
+    Materiali_ID INT NOT NULL,
+    Daudzums INT NOT NULL DEFAULT 1,
+    FOREIGN KEY (Pasutijuma_ID) REFERENCES Pasutijumi(Pasutijumi_ID) ON DELETE CASCADE,
+    FOREIGN KEY (Materiali_ID) REFERENCES Materiali(Materiali_ID) ON DELETE CASCADE
+);
+
+
+CREATE TABLE Atsauksmes (
+    Atsauksmes_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Pasutijuma_ID INT NOT NULL UNIQUE, 
+    Vertejums INT NOT NULL CHECK (Vertejums BETWEEN 1 AND 5),
+    Komentars TEXT,
+    FOREIGN KEY (Pasutijuma_ID) REFERENCES Pasutijumi(Pasutijumi_ID) ON DELETE CASCADE
+);
